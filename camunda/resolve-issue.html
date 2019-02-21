@@ -1,0 +1,35 @@
+<h1>Resolve Issue on Credit Card</h1>
+
+<form class="form-horizontal">
+  <div class="control-group">
+    <label class="control-label">Customer Number</label>
+    <div class="controls">
+      <input type="text" cam-variable-name="customerNumber" cam-variable-type="String" readonly class="form-control" />
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label">Customer Name</label>
+    <div class="controls">
+      <input type="text" cam-variable-name="customerName" cam-variable-type="String" readonly class="form-control" />
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label">Issue</label>
+    <div class="controls">
+      <input type="text" cam-variable-name="creditChargeErrorMessage" cam-variable-type="String" readonly
+        class="form-control" />
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label">Issue Resolved?</label>
+    <div class="controls">
+      <select cam-variable-name="issueResolved" cam-variable-type="Boolean">
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+  </div>
+</form>

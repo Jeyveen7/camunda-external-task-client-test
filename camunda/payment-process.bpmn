@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_0qukcni" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-0">
+  <bpmn:process id="payment-process" name="Payment Process" isExecutable="true">
+    <bpmn:sequenceFlow id="SequenceFlow_12mfiwx" sourceRef="PaymentRequestedStartEvent" targetRef="CheckCustomerCreditTask" />
+    <bpmn:exclusiveGateway id="IsThereAnyCreditGateway" name="Is there any credit?">
+      <bpmn:incoming>SequenceFlow_0bozkik</bpmn:incoming>
+      <bpmn:outgoing>YesSequenceFlow</bpmn:outgoing>
+      <bpmn:outgoing>NoSequenceFlow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0bozkik" sourceRef="CheckCustomerCreditTask" targetRef="IsThereAnyCreditGateway" />
+    <bpmn:sequenceFlow id="YesSequenceFlow" name="Yes" sourceRef="IsThereAnyCreditGateway" targetRef="ChargeOnCreditTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${credit &gt; 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="NoSequenceFlow" name="No" sourceRef="IsThereAnyCreditGateway" targetRef="ExclusiveGateway_01df91u">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${credit == 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="IsThereAnyRemainingAmountGateway" name="Is there any remaining amount?">
+      <bpmn:incoming>SequenceFlow_0boogcj</bpmn:incoming>
+      <bpmn:outgoing>YesSequenceFlow1</bpmn:outgoing>
+      <bpmn:outgoing>NoSequenceFlow1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="YesSequenceFlow1" name="Yes" sourceRef="IsThereAnyRemainingAmountGateway" targetRef="ChargeOnCreditCardTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${paymentAmount &gt; 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="NoSequenceFlow1" name="No" sourceRef="IsThereAnyRemainingAmountGateway" targetRef="ExclusiveGateway_1yobbzy">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${paymentAmount == 0}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_01df91u">
+      <bpmn:incoming>SequenceFlow_0ehltfo</bpmn:incoming>
+      <bpmn:incoming>NoSequenceFlow</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0boogcj</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0ehltfo" sourceRef="ChargeOnCreditTask" targetRef="ExclusiveGateway_01df91u" />
+    <bpmn:sequenceFlow id="SequenceFlow_0boogcj" sourceRef="ExclusiveGateway_01df91u" targetRef="IsThereAnyRemainingAmountGateway" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1yobbzy">
+      <bpmn:incoming>SequenceFlow_0ve74iz</bpmn:incoming>
+      <bpmn:incoming>NoSequenceFlow1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1hufvpt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0ve74iz" sourceRef="ChargeOnCreditCardTask" targetRef="ExclusiveGateway_1yobbzy" />
+    <bpmn:sequenceFlow id="SequenceFlow_1hufvpt" sourceRef="ExclusiveGateway_1yobbzy" targetRef="PaymentFinishedEndEvent" />
+    <bpmn:serviceTask id="CheckCustomerCreditTask" name="Check Customer Credit" camunda:type="external" camunda:topic="customer-credit-check">
+      <bpmn:incoming>SequenceFlow_12mfiwx</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0oencgm</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0bozkik</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ChargeOnCreditTask" name="Charge on Credit" camunda:type="external" camunda:topic="charge-credit">
+      <bpmn:incoming>YesSequenceFlow</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ehltfo</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ChargeOnCreditCardTask" name="Charge on Credit Card" camunda:type="external" camunda:topic="charge-credit-card">
+      <bpmn:incoming>YesSequenceFlow1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ve74iz</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="PaymentRequestedStartEvent" name="Payment Requested">
+      <bpmn:outgoing>SequenceFlow_12mfiwx</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_095s6xh" />
+    </bpmn:startEvent>
+    <bpmn:boundaryEvent id="BoundaryEvent_1ucyh8w" name="Credit Card Issue" attachedToRef="ChargeOnCreditCardTask">
+      <bpmn:outgoing>SequenceFlow_1sj7410</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_0qwulu9" camunda:errorCodeVariable="creditChargeErrorCode" camunda:errorMessageVariable="creditChargeErrorMessage" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1sj7410" sourceRef="BoundaryEvent_1ucyh8w" targetRef="IntermediateThrowEvent_04ec2lt" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_04ec2lt" name="Cancel Payment">
+      <bpmn:incoming>SequenceFlow_1sj7410</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0l85x9d</bpmn:outgoing>
+      <bpmn:compensateEventDefinition />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:boundaryEvent id="BoundaryEvent_1a84bpo" name="Cancel Payment" attachedToRef="ChargeOnCreditTask">
+      <bpmn:compensateEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0l85x9d" sourceRef="IntermediateThrowEvent_04ec2lt" targetRef="Task_13kvfi1" />
+    <bpmn:serviceTask id="CancelPaymentTask" name="Cancel Payment" isForCompensation="true" camunda:type="external" camunda:topic="cancel-payment" />
+    <bpmn:sequenceFlow id="SequenceFlow_0il1wxr" sourceRef="Task_13kvfi1" targetRef="ExclusiveGateway_08wcjwv" />
+    <bpmn:userTask id="Task_13kvfi1" name="Resolve Credit Card Issue" camunda:formKey="embedded:deployment:resolve-issue.html" camunda:candidateGroups="finance">
+      <bpmn:incoming>SequenceFlow_0l85x9d</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0il1wxr</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_08wcjwv" name="Issue Resolved?">
+      <bpmn:incoming>SequenceFlow_0il1wxr</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1rnegcp</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0oencgm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1rnegcp" sourceRef="ExclusiveGateway_08wcjwv" targetRef="EndEvent_1dlcdnn">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${not issueResolved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0oencgm" sourceRef="ExclusiveGateway_08wcjwv" targetRef="CheckCustomerCreditTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${issueResolved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EndEvent_1dlcdnn" name="Payment Canceled">
+      <bpmn:incoming>SequenceFlow_1rnegcp</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:type="external" camunda:topic="payment-canceled" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="PaymentFinishedEndEvent" name="Payment Finished">
+      <bpmn:incoming>SequenceFlow_1hufvpt</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:type="external" camunda:topic="payment-finished" />
+    </bpmn:endEvent>
+    <bpmn:association id="Association_1ih3quk" associationDirection="One" sourceRef="BoundaryEvent_1a84bpo" targetRef="CancelPaymentTask" />
+  </bpmn:process>
+  <bpmn:message id="Message_095s6xh" name="PaymentRequestedMessage" />
+  <bpmn:error id="Error_0qwulu9" name="Credit Charge Error" errorCode="CreditChargeError" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="payment-process">
+      <bpmndi:BPMNEdge id="SequenceFlow_12mfiwx_di" bpmnElement="SequenceFlow_12mfiwx">
+        <di:waypoint x="195" y="224" />
+        <di:waypoint x="259" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_114xc78_di" bpmnElement="IsThereAnyCreditGateway" isMarkerVisible="true" bioc:stroke="#000" bioc:fill="#fff">
+        <dc:Bounds x="409" y="199" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="405" y="169" width="58" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0bozkik_di" bpmnElement="SequenceFlow_0bozkik">
+        <di:waypoint x="359" y="224" />
+        <di:waypoint x="409" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1uvx1n9_di" bpmnElement="YesSequenceFlow" bioc:stroke="#000" bioc:fill="#fff">
+        <di:waypoint x="459" y="224" />
+        <di:waypoint x="509" y="224" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="476" y="206" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0qxkhbn_di" bpmnElement="NoSequenceFlow" bioc:stroke="#000" bioc:fill="#fff">
+        <di:waypoint x="434" y="249" />
+        <di:waypoint x="434" y="322" />
+        <di:waypoint x="684" y="322" />
+        <di:waypoint x="684" y="249" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="552" y="304" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_19ioth9_di" bpmnElement="IsThereAnyRemainingAmountGateway" isMarkerVisible="true" bioc:stroke="#000" bioc:fill="#fff">
+        <dc:Bounds x="772" y="199" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="768" y="150" width="58" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_057s7sa_di" bpmnElement="YesSequenceFlow1" bioc:stroke="#000" bioc:fill="#fff">
+        <di:waypoint x="797" y="249" />
+        <di:waypoint x="797" y="322" />
+        <di:waypoint x="841" y="322" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="803" y="283" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0xss567_di" bpmnElement="NoSequenceFlow1" bioc:stroke="#000" bioc:fill="#fff">
+        <di:waypoint x="822" y="224" />
+        <di:waypoint x="961" y="224" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="884" y="206" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_01df91u_di" bpmnElement="ExclusiveGateway_01df91u" isMarkerVisible="true">
+        <dc:Bounds x="659" y="199" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ehltfo_di" bpmnElement="SequenceFlow_0ehltfo">
+        <di:waypoint x="609" y="224" />
+        <di:waypoint x="659" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0boogcj_di" bpmnElement="SequenceFlow_0boogcj">
+        <di:waypoint x="709" y="224" />
+        <di:waypoint x="772" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1yobbzy_di" bpmnElement="ExclusiveGateway_1yobbzy" isMarkerVisible="true">
+        <dc:Bounds x="961" y="199" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ve74iz_di" bpmnElement="SequenceFlow_0ve74iz">
+        <di:waypoint x="941" y="322" />
+        <di:waypoint x="986" y="322" />
+        <di:waypoint x="986" y="249" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hufvpt_di" bpmnElement="SequenceFlow_1hufvpt">
+        <di:waypoint x="1011" y="224" />
+        <di:waypoint x="1085" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0xcqci1_di" bpmnElement="CheckCustomerCreditTask">
+        <dc:Bounds x="259" y="184" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1ra4vyo_di" bpmnElement="ChargeOnCreditTask">
+        <dc:Bounds x="509" y="184" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0ihj3ms_di" bpmnElement="ChargeOnCreditCardTask">
+        <dc:Bounds x="841" y="282" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_19g4udu_di" bpmnElement="PaymentRequestedStartEvent" bioc:stroke="#000" bioc:fill="#fff">
+        <dc:Bounds x="159" y="206" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="150" y="249" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_0oxw2s8_di" bpmnElement="BoundaryEvent_1ucyh8w">
+        <dc:Bounds x="907" y="344" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="951" y="355" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1sj7410_di" bpmnElement="SequenceFlow_1sj7410">
+        <di:waypoint x="925" y="380" />
+        <di:waypoint x="925" y="442" />
+        <di:waypoint x="993" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1t9y2qc_di" bpmnElement="IntermediateThrowEvent_04ec2lt">
+        <dc:Bounds x="993" y="424" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="971" y="467" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_0z20uu6_di" bpmnElement="BoundaryEvent_1a84bpo">
+        <dc:Bounds x="574" y="166" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="615" y="177" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1ih3quk_di" bpmnElement="Association_1ih3quk">
+        <di:waypoint x="592" y="166" />
+        <di:waypoint x="592" y="63" />
+        <di:waypoint x="660" y="63" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0l85x9d_di" bpmnElement="SequenceFlow_0l85x9d">
+        <di:waypoint x="1029" y="442" />
+        <di:waypoint x="1102" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_11bgosc_di" bpmnElement="CancelPaymentTask">
+        <dc:Bounds x="660" y="23" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0il1wxr_di" bpmnElement="SequenceFlow_0il1wxr">
+        <di:waypoint x="1202" y="442" />
+        <di:waypoint x="1259" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0ulcj6p_di" bpmnElement="Task_13kvfi1">
+        <dc:Bounds x="1102" y="402" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_08wcjwv_di" bpmnElement="ExclusiveGateway_08wcjwv" isMarkerVisible="true">
+        <dc:Bounds x="1259" y="417" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1243" y="393" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1rnegcp_di" bpmnElement="SequenceFlow_1rnegcp">
+        <di:waypoint x="1309" y="442" />
+        <di:waypoint x="1379" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0oencgm_di" bpmnElement="SequenceFlow_0oencgm">
+        <di:waypoint x="1284" y="467" />
+        <di:waypoint x="1284" y="537" />
+        <di:waypoint x="309" y="537" />
+        <di:waypoint x="309" y="264" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1l4xi6u_di" bpmnElement="EndEvent_1dlcdnn">
+        <dc:Bounds x="1379" y="424" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1374" y="467" width="47" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_0iqub4u_di" bpmnElement="PaymentFinishedEndEvent" bioc:stroke="#000" bioc:fill="#fff">
+        <dc:Bounds x="1085" y="206" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1059" y="249" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

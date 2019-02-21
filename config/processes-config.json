@@ -1,0 +1,20 @@
+[
+  {
+    "name":"payment-process",
+    "engineUrl":"http://localhost:8080/engine-rest",
+    "clientConfig":{
+      "workerId":"nodejs-worker",
+      "maxTasks":1,
+      "asyncResponseTimeout":60000
+    }
+  },
+  {
+    "name":"order-process",
+    "engineUrl":"http://localhost:8081/engine-rest",
+    "clientConfig":{
+      "workerId":"nodejs-worker",
+      "maxTasks":1,
+      "asyncResponseTimeout":60000
+    }
+  }
+]

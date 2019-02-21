@@ -1,0 +1,14 @@
+[
+  {
+    "number":"123456",
+    "name":"Lucas da Silva",
+    "credit":10000,
+    "creditCardNumber":""
+  },
+  {
+    "number":"7890",
+    "name":"Paola Lucca Pizutti",
+    "credit":12000,
+    "creditCardNumber":"1234567"
+  }
+]
